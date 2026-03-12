@@ -128,16 +128,32 @@ async function connectWA() {
     }
   });
 
-  sock.ev.on('messages.upsert', async ({ messages }) => {
+  sock.ev.on('messages.upsert', async ({ messages, type }) => {
+    if (type !== 'notify') return;
     for (const msg of messages) {
-      if (!msg.message || msg.key.fromMe) continue;
+      if (!msg.message) continue;
       const from = msg.key.remoteJid;
+      if (from === 'status@broadcast') continue;
+
       const body = msg.message?.conversation ||
-                   msg.message?.extendedTextMessage?.text || '';
-      const ownerJid = CONFIG.OWNER + '@s.whatsapp.net';
-  if (from !== ownerJid && from !== 'status@broadcast') {
-    if (!msg.key.fromMe) continue;
-      }     
+                   msg.message?.extendedTextMessage?.text ||
+                   msg.message?.imageMessage?.caption || '';
+
+      console.log(`📨 from: ${from} | fromMe: ${msg.key.fromMe} | body: "${body}"`);
+
+      if (!body.startsWith('!')) continue;
+
+      const ownerNum    = CONFIG.OWNER.replace(/\D/g, '');
+      const ownerJid    = ownerNum + '@s.whatsapp.net';
+      const participant = msg.key.participant?.replace('@s.whatsapp.net','') || '';
+
+      const esOwner = msg.key.fromMe ||
+                      from === ownerJid ||
+                      participant === ownerNum;
+
+      if (!esOwner) continue;
+
+      console.log(`✅ Comando: ${body}`);
       await handleCommand(body.trim().toLowerCase(), from);
     }
   });
