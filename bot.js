@@ -135,7 +135,9 @@ async function connectWA() {
       const body = msg.message?.conversation ||
                    msg.message?.extendedTextMessage?.text || '';
       const ownerJid = CONFIG.OWNER + '@s.whatsapp.net';
-      if (from !== ownerJid) continue;
+  if (from !== ownerJid && from !== 'status@broadcast') {
+    if (!msg.key.fromMe) continue;
+      }     
       await handleCommand(body.trim().toLowerCase(), from);
     }
   });
