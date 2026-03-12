@@ -1,0 +1,24 @@
+app = "whats-tienda"
+primary_region = "mia"
+
+[build]
+  builder = "heroku/buildpacks:20"
+
+[env]
+  PORT = "3000"
+
+[[services]]
+  internal_port = 3000
+  protocol = "tcp"
+
+  [[services.ports]]
+    handlers = ["http"]
+    port = 80
+
+  [[services.ports]]
+    handlers = ["tls", "http"]
+    port = 443
+
+[mounts]
+  source = "wa_data"
+  destination = "/tmp/wa_auth"
